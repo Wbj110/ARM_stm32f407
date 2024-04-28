@@ -153,7 +153,7 @@ void init_systick_timer(uint32_t tick_hz)
     //load the value in to SVR
     *pSRVR |= count_value;
 
-    //do some settings
+  
     *pSCSR |= ( 1 << 1); //Enables SysTick exception request:
     *pSCSR |= ( 1 << 2);  //Indicates the clock source, processor clock source
 
@@ -270,15 +270,15 @@ void update_next_task(void)
 
 __attribute__((naked)) void switch_sp_to_psp(void)
 {
-    //1. initialize the PSP with TASK1 stack start address
+   
 
-	//get the value of psp of current_task
+	//get the PSP value of current_task
 	__asm volatile ("PUSH {LR}"); //preserve LR which connects back to main()
 	__asm volatile ("BL get_psp_value");
 	__asm volatile ("MSR PSP,R0"); //initialize psp
 	__asm volatile ("POP {LR}");  //pops back LR value
 
-	//2. change SP to PSP using CONTROL register
+	//2. change SP to PSP 
 	__asm volatile ("MOV R0,#0X02");
 	__asm volatile ("MSR CONTROL,R0");
 	__asm volatile ("BX LR");
@@ -298,7 +298,7 @@ void schedule(void)
 
 void task_delay(uint32_t tick_count)
 {
-	//disable interrupt
+	
 	INTERRUPT_DISABLE();
 
 	if(current_task)
@@ -316,7 +316,7 @@ void task_delay(uint32_t tick_count)
 __attribute__((naked)) void PendSV_Handler(void)
 {
 
-	/*Save the context of current task */
+	/*Save current task */
 
 	//1. Get current running task's PSP value
 	__asm volatile("MRS R0,PSP");
@@ -326,14 +326,14 @@ __attribute__((naked)) void PendSV_Handler(void)
 	__asm volatile("PUSH {LR}");
 
 	//3. Save the current value of PSP
-    __asm volatile("BL save_psp_value");
+        __asm volatile("BL save_psp_value");
 
 
 
-	/*Retrieve the context of next task */
+	/*Retrieve next task */
 
 	//1. Decide next task to run
-    __asm volatile("BL update_next_task");
+        __asm volatile("BL update_next_task");
 
 	//2. get its past PSP value
 	__asm volatile ("BL get_psp_value");
@@ -341,7 +341,7 @@ __attribute__((naked)) void PendSV_Handler(void)
 	//3. Using that PSP value retrieve SF2(R4 to R11)
 	__asm volatile ("LDMIA R0!,{R4-R11}");
 
-	//4. update PSP and exit
+	//4. update and exit PSP
 	__asm volatile("MSR PSP,R0");
 
 	__asm volatile("POP {LR}");
@@ -384,11 +384,11 @@ void  SysTick_Handler(void)
 
     unblock_tasks();
 
-    //pend the pendsv exception
+    //pendsv exception
     *pICSR |= ( 1 << 28);
 }
 
-//implement the fault handlers
+
 void HardFault_Handler(void)
 {
 	printf("Exception : Hardfault\n");
